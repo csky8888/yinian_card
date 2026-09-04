@@ -6,6 +6,19 @@
 <title>一念 · 形象與心智覺察測驗</title>
 <meta name="description" content="回答 8 個直覺問題，看見限制你的念頭，換一個走向未來的可能。" />
 
+<!-- GA4: 一念測驗卡 (G-TWPS612TK0) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TWPS612TK0"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-TWPS612TK0');
+/* 安全送事件：擋廣告外掛或離線時不炸版 */
+function trackEvent(name, params){
+  try{ if(typeof gtag === 'function') gtag('event', name, params || {}); }catch(e){}
+}
+</script>
+
 <style>
 :root{
   --ink:#1f2923;
@@ -392,6 +405,14 @@ const QUESTIONS = [
 let qi = 0;
 let scores = { self_worth: 0, action: 0, presence: 0, flow: 0 };
 
+/* ===== 名單後端設定 =====
+ * Apps Script Web App：寫入 Google Sheets＋寄通知信到 csky8888@gmail.com
+ * 試算表欄位：時間 / contact / type / page / url / ua
+ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdsz450B7XhwQyTJDpdZtR4hDgP9sMdmhkFVg_BB8e8UU6klJH6JAZ6GqkApGD7ZCh/exec";
+const LEAD_PAGE = "yinian_fengshui";
+let leadSending = false;
+
 function show(id) {
   document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
   document.getElementById(id).classList.add("active");
@@ -401,6 +422,7 @@ function show(id) {
 function start() {
   qi = 0;
   scores = { self_worth: 0, action: 0, presence: 0, flow: 0 };
+  trackEvent('start_quiz', { page: LEAD_PAGE });
   show("quiz");
   render();
 }
@@ -448,32 +470,83 @@ function finish() {
     document.getElementById("interpretation").textContent = r.desc;
 
     localStorage.setItem("yinian_last_result", winner);
+    trackEvent('complete_quiz', { page: LEAD_PAGE, result_type: winner });
     show("result");
   }, 2200);
 }
 
-function submitLead() {
-  const contact = document.getElementById("leadContact").value.trim();
+async function submitLead() {
+  if (leadSending) return;
+  const input = document.getElementById("leadContact");
+  const btn = document.querySelector(".lead-btn");
+  const contact = input.value.trim();
   const resultType = localStorage.getItem("yinian_last_result") || "unknown";
+  const now = new Date().toISOString();
 
-  const leads = JSON.parse(localStorage.getItem("yinian_leads") || "[]");
-  leads.push({
+  /* 1) 先存本機（離線也看得到），再送後端 */
+  try {
+    const leads = JSON.parse(localStorage.getItem("yinian_leads") || "[]");
+    leads.push({ contact: contact || "未填寫(訪客)", type: resultType, date: now });
+    localStorage.setItem("yinian_leads", JSON.stringify(leads));
+  } catch (e) {}
+
+  /* 2) GA4：不管後端成不成功都要有值 */
+  trackEvent('generate_lead', {
+    page: LEAD_PAGE,
+    result_type: resultType,
+    has_contact: contact ? 'yes' : 'no'
+  });
+
+  /* 3) 送到 Apps Script → 寫入 Google Sheets＋寄通知信 */
+  leadSending = true;
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "傳送中…"; }
+  let sent = false;
+  const payload = {
     contact: contact || "未填寫(訪客)",
     type: resultType,
-    date: new Date().toISOString()
-  });
-  localStorage.setItem("yinian_leads", JSON.stringify(leads));
+    page: LEAD_PAGE,
+    url: location.href,
+    ua: navigator.userAgent,
+    date: now
+  };
+  try {
+    /* text/plain 不觸發 CORS 預檢；no-cors 下回應是 opaque，送達即算成功 */
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    sent = true;
+  } catch (err) {
+    /* 後端擋掉時改用 sendBeacon 再試一次 */
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+        sent = navigator.sendBeacon(APPS_SCRIPT_URL, blob);
+      }
+    } catch (e) {}
+  }
+  leadSending = false;
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "免費領取 7 日微行動藏寶圖"; }
 
+  /* 4) 畫面：一律顯示成功（本機已留底），後端失敗就加註提醒 */
   document.getElementById("leadForm").style.display = "none";
   const successBox = document.getElementById("leadSuccess");
   successBox.style.display = "block";
-  if(contact) {
+  if (contact) {
     successBox.textContent = "✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引，藏寶圖將發送至：" + contact;
+  } else {
+    successBox.textContent = "✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引。";
+  }
+  if (!sent) {
+    successBox.textContent += "（提醒：網路似乎不穩，資料已先存在這台裝置，建議稍後再登記一次。）";
   }
 }
 
 async function share() {
   const text = document.getElementById("mantra").innerText;
+  const resultType = localStorage.getItem("yinian_last_result") || "unknown";
   if (navigator.share) {
     try {
       await navigator.share({
@@ -481,15 +554,23 @@ async function share() {
         text: "我看見了正在限制我的念頭：\n\n" + text + "\n\n換一個念頭，走向另一種可能：",
         url: location.href
       });
+      trackEvent('share', { page: LEAD_PAGE, method: 'web_share', result_type: resultType });
     } catch (e) {}
   } else {
-    await navigator.clipboard.writeText(text + "\n" + location.href);
+    try {
+      await navigator.clipboard.writeText(text + "\n" + location.href);
+      trackEvent('share', { page: LEAD_PAGE, method: 'clipboard', result_type: resultType });
+    } catch (e) {}
     alert("一念金句與測驗連結已複製！");
   }
 }
 
 function restart() {
-  document.getElementById("leadForm").style.display = "flex";
+  const form = document.getElementById("leadForm");
+  form.style.display = "flex";
+  const btn = document.querySelector(".lead-btn");
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "免費領取 7 日微行動藏寶圖"; }
+  leadSending = false;
   document.getElementById("leadSuccess").style.display = "none";
   document.getElementById("leadContact").value = "";
   show("home");
