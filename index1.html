@@ -6,6 +6,18 @@
 <title>108 · 此刻真言</title>
 <meta name="description" content="回答 6 個直覺問題，遇見此刻最適合你的那句話。" />
 
+<!-- GA4: 一念測驗卡 (G-TWPS612TK0) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TWPS612TK0"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-TWPS612TK0');
+function trackEvent(name, params){
+  try{ if(typeof gtag === 'function') gtag('event', name, params || {}); }catch(e){}
+}
+</script>
+
 <style>
 :root{
   --ink:#26342d;
@@ -269,9 +281,11 @@ function show(id){
  document.getElementById(id).classList.add("active");
 }
 
+const LEAD_PAGE = "mantra_108";
 function start(){
  qi=0;
  scores={calm:0,courage:0,release:0,love:0,clarity:0,trust:0};
+ trackEvent('start_quiz', { page: LEAD_PAGE });
  show("quiz"); render();
 }
 
@@ -313,33 +327,38 @@ function finish(){
    const r=TYPES[winner];
 
    document.getElementById("mantra").innerHTML=
-      r.mantra.replace("\\n","<br>");
+      r.mantra.replace(/\n/g,"<br>");
    document.getElementById("resultType").textContent=
       "給此刻正在「"+r.title.replace("你現在需要的，是","")+"」的你";
    document.getElementById("resultTitle").textContent=r.title;
    document.getElementById("interpretation").textContent=r.desc;
 
    localStorage.setItem("mantraResult",winner);
+   trackEvent('complete_quiz', { page: LEAD_PAGE, result_type: winner });
+   // Meta Pixel 如有需要：fbq('trackCustom', 'complete_quiz', {result_type: winner});
    show("result");
-
-   // GA / Meta Pixel 可在此送出 complete_quiz
  },2400);
 }
 
 async function share(){
  const text=document.getElementById("mantra").innerText;
+ const resultType=localStorage.getItem("mantraResult") || "unknown";
 
  if(navigator.share){
    try{
      await navigator.share({
        title:"我的此刻真言",
-       text:"我找到今天屬於我的一句話：\\n\\n"+text+
-            "\\n\\n你也來找找你的。",
+       text:"我找到今天屬於我的一句話：\n\n"+text+
+            "\n\n你也來找找你的。",
        url:location.href
      });
+     trackEvent('share', { page: LEAD_PAGE, method: 'web_share', result_type: resultType });
    }catch(e){}
  }else{
-   await navigator.clipboard.writeText(text+"\\n"+location.href);
+   try{
+     await navigator.clipboard.writeText(text+"\n"+location.href);
+     trackEvent('share', { page: LEAD_PAGE, method: 'clipboard', result_type: resultType });
+   }catch(e){}
    alert("真言與連結已複製");
  }
 }

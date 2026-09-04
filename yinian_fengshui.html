@@ -1,225 +1,603 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>一念 · 形象與心智覺察測驗</title>
 <meta name="description" content="回答 8 個直覺問題，看見限制你的念頭，換一個走向未來的可能。" />
 
-<!-- Google tag (gtag.js) -->
+<!-- GA4: 一念測驗卡 (G-TWPS612TK0) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TWPS612TK0"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-TWPS612TK0');
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-TWPS612TK0');
+/* 安全送事件：擋廣告外掛或離線時不炸版 */
+function trackEvent(name, params){
+  try{ if(typeof gtag === 'function') gtag('event', name, params || {}); }catch(e){}
+}
 </script>
 
 <style>
 :root{
   --ink:#1f2923;
+  --muted:#6e7972;
+  --paper:#f7f6f0;
+  --white:rgba(255,255,255,.82);
+  --green:#3d5245;
+  --green-dark:#27362e;
+  --gold:#b8995a;
+  --gold-light:#e2d3b4;
+  --gold-glow:rgba(184,153,90,.18);
+  --border:rgba(61,82,69,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:
+  "Noto Serif TC","Songti TC","PMingLiU",serif;color:var(--ink);background-color:#f6f4ee}
+body{
+  background:
+    radial-gradient(circle at 50% -10%,#ffffff 0,transparent 45%),
+    linear-gradient(180deg,#f9f8f2 0%,#edf2eb 55%,#f5f1e8 100%);
+  background-attachment:fixed;
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;opacity:.28;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+}
+.app{
+  width:min(100%,500px);min-height:100svh;margin:auto;
+  padding:calc(26px + env(safe-area-inset-top)) 24px
+          calc(32px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;
+}
+.brand{
+  font:600 11px/1 system-ui,-apple-system,sans-serif;
+  letter-spacing:.32em;
+  color:#8a7e65;
+  display:flex;align-items:center;gap:8px;
+}
+.brand::before{
+  content:"";display:inline-block;width:6px;height:6px;
+  background:var(--gold);border-radius:50%;
+}
+.screen{display:none;flex:1;animation:in .65s cubic-bezier(.2,.8,.2,1)}
+.screen.active{display:flex;flex-direction:column}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Hero Section */
+.hero{justify-content:center;text-align:center;padding:4vh 0 6vh}
+.symbol{
+  margin:16px auto 28px;width:76px;height:76px;display:grid;place-items:center;
+  border:1px solid rgba(184,153,90,.32);border-radius:50%;
+  color:var(--gold);font-size:30px;
+  background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(247,246,240,.4) 70%);
+  box-shadow:0 0 50px var(--gold-glow);
+}
+.eyebrow{font:500 12px/1.4 system-ui,sans-serif;letter-spacing:.32em;color:var(--gold);margin-bottom:16px}
+h1{font-size:34px;line-height:1.36;font-weight:500;letter-spacing:.05em;margin:0}
+.intro{font-size:14px;line-height:2.1;color:var(--muted);margin:20px auto 32px;max-width:340px}
+.intro strong{color:var(--ink);font-weight:500}
+
+button{font:inherit;cursor:pointer}
+.primary{
+  border:0;background:var(--green-dark);color:#fff;border-radius:999px;padding:16px 32px;
+  font-family:system-ui,-apple-system,sans-serif;font-size:14px;letter-spacing:.14em;
+  box-shadow:0 12px 30px rgba(39,54,46,.2);transition:.22s;
+}
+.primary:hover{background:#1d2822;transform:translateY(-1px);box-shadow:0 16px 36px rgba(39,54,46,.25)}
+.primary:active{transform:scale(.98)}
+.note{font:11px/1.6 system-ui,sans-serif;color:#9aa29b;margin-top:16px}
+
+/* Quiz Screen */
+.top{padding-top:20px}
+.progressbar{height:2px;background:#dee3dc;margin:16px 0 38px;overflow:hidden;border-radius:2px}
+.progressbar i{display:block;width:0;height:100%;background:var(--gold);transition:width .4s ease}
+.qnum{font:500 12px/1 system-ui,sans-serif;color:var(--gold);letter-spacing:.22em}
+.question{font-size:24px;line-height:1.55;font-weight:500;margin:14px 0 24px;color:#1a241e}
+.hint{font:12px/1.6 system-ui,sans-serif;color:#9aa09a;margin-top:-14px;margin-bottom:24px}
+.answers{display:grid;gap:12px}
+.answer{
+  width:100%;border:1px solid var(--border);background:rgba(255,255,255,.7);
+  backdrop-filter:blur(14px);border-radius:14px;padding:18px 18px;text-align:left;
+  color:#313e36;box-shadow:0 6px 18px rgba(47,64,54,.03);cursor:pointer;
+  transition:.18s;font-size:15px;line-height:1.6;font-family:system-ui,-apple-system,sans-serif;
+}
+.answer:hover{background:rgba(255,255,255,.92);border-color:rgba(184,153,90,.38)}
+.answer:active,.answer.selected{
+  transform:scale(.985);background:var(--green);color:white;border-color:var(--green);
+  box-shadow:0 10px 24px rgba(61,82,69,.22);
+}
+
+/* Loading Screen */
+.loading{justify-content:center;text-align:center}
+.orbit{position:relative;width:120px;height:120px;margin:0 auto 36px}
+.orbit:before,.orbit:after{content:"";position:absolute;border-radius:50%}
+.orbit:before{inset:0;border:1px solid rgba(184,153,90,.35);animation:spin 6s linear infinite}
+.orbit:after{width:8px;height:8px;background:var(--gold);top:-4px;left:56px;box-shadow:0 0 20px #b8995a}
+.orbit span{position:absolute;inset:16px;display:grid;place-items:center;border-radius:50%;
+ background:rgba(255,255,255,.65);font-size:26px;color:var(--gold)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading h2{font-weight:500;font-size:22px;margin:0 0 10px;letter-spacing:.04em}
+.loading p{font:13px/2 system-ui,sans-serif;color:var(--muted);margin:0}
+
+/* Result Screen */
+.result{padding-top:16px}
+.result-head{text-align:center;margin:32px 0 20px}
+.result-head small{font:600 11px/1 system-ui,sans-serif;letter-spacing:.28em;color:var(--gold)}
+.result-head h2{font-weight:500;font-size:22px;margin:10px 0 0}
+
+.card{
+  min-height:360px;border-radius:24px;padding:34px 26px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;text-align:center;
+  background:
+    radial-gradient(circle at 50% 12%,rgba(255,255,255,.98),transparent 45%),
+    linear-gradient(165deg,#edf1e8,#dce5db 55%,#efe9dc);
+  box-shadow:0 24px 50px rgba(39,54,46,.12);
+  border:1px solid rgba(255,255,255,.7);
+}
+.card:before{
+  content:"";position:absolute;width:320px;height:320px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.65);left:-110px;bottom:-190px;
+  box-shadow:0 0 0 25px rgba(255,255,255,.18);
+  pointer-events:none;
+}
+.mark{font-size:28px;color:var(--gold);margin-bottom:18px}
+.mantra{
+  font-size:23px;line-height:1.75;font-weight:500;letter-spacing:.06em;
+  color:#1e2922;margin-bottom:20px;position:relative;
+}
+.for{
+  font:500 12px/1.5 system-ui,sans-serif;letter-spacing:.2em;
+  color:#6b7970;background:rgba(255,255,255,.55);display:inline-block;
+  margin:0 auto;padding:6px 16px;border-radius:999px;backdrop-filter:blur(6px);
+}
+
+/* Deep Reading Section */
+.reading{
+  margin:28px 0 24px;padding:26px 22px;border-radius:20px;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(14px);
+  border:1px solid var(--border);box-shadow:0 8px 24px rgba(47,64,54,.03);
+}
+.reading .badge{
+  font:600 11px/1 system-ui,sans-serif;color:var(--gold);letter-spacing:.22em;margin-bottom:10px;
+}
+.reading h3{font-size:18px;font-weight:500;margin:0 0 14px;color:#202d25;line-height:1.5}
+.reading p{
+  font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.95;
+  color:#414f47;margin:0 0 14px;
+}
+.reading p:last-child{margin-bottom:0}
+
+/* Lead Magnet Form (Placed after result text) */
+.lead-box{
+  margin:24px 0 28px;padding:26px 22px;border-radius:20px;
+  background:linear-gradient(170deg,rgba(255,255,255,.9) 0%,rgba(245,243,234,.85) 100%);
+  border:1px solid rgba(184,153,90,.3);
+  box-shadow:0 14px 35px var(--gold-glow);
+  text-align:center;
+}
+.lead-icon{font-size:22px;margin-bottom:8px}
+.lead-title{
+  font-size:15px;line-height:1.6;font-weight:600;color:#25342c;margin-bottom:14px;
+  font-family:system-ui,-apple-system,sans-serif;letter-spacing:.02em;
+}
+.lead-form{display:flex;flex-direction:column;gap:10px}
+.lead-input{
+  width:100%;padding:14px 16px;border-radius:12px;
+  border:1px solid rgba(61,82,69,.2);background:#fff;
+  font-family:system-ui,-apple-system,sans-serif;font-size:14px;color:var(--ink);
+  outline:none;transition:.2s;
+}
+.lead-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+.lead-btn{
+  width:100%;border:0;background:var(--gold);color:#fff;border-radius:12px;padding:14px 18px;
+  font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:600;
+  letter-spacing:.08em;transition:.2s;box-shadow:0 6px 18px rgba(184,153,90,.28);
+}
+.lead-btn:hover{background:#a38548}
+.lead-btn:active{transform:scale(.985)}
+.lead-btn[disabled]{opacity:.6;cursor:not-allowed}
+.lead-btn[disabled]:hover{background:var(--gold)}
+.lead-input.invalid{border-color:#c0432f;box-shadow:0 0 0 3px rgba(192,67,47,.12)}
+.lead-error{display:none;text-align:left;font:12px/1.6 system-ui,sans-serif;color:#c0432f;margin-top:-2px;padding-left:4px}
+.lead-success{
   display:none;padding:12px;border-radius:10px;background:rgba(83,107,92,.12);
   color:var(--green-dark);font:13px/1.6 system-ui,sans-serif;margin-top:10px;
 }
-.lead-error{
-  display:none;text-align:left;font:12px/1.6 system-ui,sans-serif;color:#c0432f;
-  margin-top:-2px;padding-left:4px;
-}
-.lead-input.invalid{border-color:#c0432f;box-shadow:0 0 0 3px rgba(192,67,47,.12)}
-.lead-btn[disabled]{opacity:.6;cursor:not-allowed}
-.lead-btn[disabled]:hover{background:var(--gold)}
 
 /* Actions */
 .actions{display:grid;gap:10px;margin-bottom:18px}
+.secondary{
+  border:1px solid var(--border);background:rgba(255,255,255,.75);color:#3b4b41;
+  border-radius:999px;padding:14px 24px;font-family:system-ui,sans-serif;font-size:13px;
+  letter-spacing:.1em;transition:.2s;
+}
+.secondary:hover{background:#fff;border-color:rgba(184,153,90,.35)}
+.footer{text-align:center;font:11px/1.7 system-ui,sans-serif;color:#9ca39c;margin-top:10px}
+</style>
+</head>
+
+<body>
+<main class="app">
+  <div class="brand">一念 · YI NIAN</div>
+
+  <!-- Screen 1: Home / Hero -->
+  <section class="screen hero active" id="home">
+    <div class="symbol">✧</div>
+    <div class="eyebrow">MINDSET × MANIFESTATION</div>
+    <h1>換一個念頭，<br>走向另一種可能</h1>
+    <p class="intro">
+      你現在的困境，不是沒有能力，<br>
+      而是被某個沒察覺的念頭卡住了。<br><br>
+      <strong>回答 8 個直覺問題</strong>，<br>陪你看見正在限制你的念頭。
+    </p>
+    <button class="primary" onclick="start()">開始覺察 · 約 1 分鐘</button>
+    <div class="note">沒有對錯，順隨第一直覺選擇</div>
+  </section>
+
+  <!-- Screen 2: Quiz -->
+  <section class="screen top" id="quiz">
+    <div class="qnum" id="qnum">01 / 08</div>
+    <div class="progressbar"><i id="bar"></i></div>
+    <div class="question" id="question"></div>
+    <div class="hint">不用想太久，讓直覺替你選出最貼近的狀態。</div>
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <!-- Screen 3: Loading -->
+  <section class="screen loading" id="loading">
+    <div class="orbit"><span>✦</span></div>
+    <h2>正在校正你的頻率</h2>
+    <p>看見卡點，梳理念頭，<br>為你提煉此刻最需要的一句話……</p>
+  </section>
+
+  <!-- Screen 4: Result -->
+  <section class="screen result" id="result">
+    <div class="result-head">
+      <small>YOUR THOUGHT · TODAY</small>
+      <h2>這是你此刻的一念</h2>
+    </div>
+
+    <div class="card" id="shareCard">
+      <div class="mark">✧</div>
+      <div class="mantra" id="mantra"></div>
+      <div class="for" id="resultType"></div>
+    </div>
+
+    <!-- Result Reading -->
+    <div class="reading">
+      <div class="badge">【 念頭覺察與洞察 】</div>
+      <h3 id="resultTitle"></h3>
+      <p id="interpretation"></p>
+    </div>
+
     <!-- Lead Magnet Form (Result 後面) -->
     <div class="lead-box">
       <div class="lead-icon">📜</div>
       <div class="lead-title">留 LINE 或 Email領取完整 7 日微行動發現自己的藏寶圖。</div>
-      <div class="lead-title">留下 Email 領取完整 7 日微行動發現自己的藏寶圖。</div>
       <div class="lead-form" id="leadForm">
         <input 
           type="text" 
           id="leadContact" 
-          type="email" 
-          id="leadEmail" 
           class="lead-input" 
           placeholder="請輸入 LINE ID 或 Email (選填)"
-          placeholder="請輸入您的 Email"
           autocomplete="email"
           inputmode="email"
+          oninput="this.classList.remove('invalid');document.getElementById('leadError').style.display='none'"
         />
-        <div class="lead-error" id="leadError">請輸入正確的 Email 格式</div>
+        <div class="lead-error" id="leadError">Email 格式似乎不正確，請再檢查一次（只填 LINE ID 也可以，直接送出）</div>
         <button class="lead-btn" onclick="submitLead()">免費領取 7 日微行動藏寶圖</button>
       </div>
       <div class="lead-success" id="leadSuccess">
+        ✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引。
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button class="secondary" onclick="share()">分享此刻的一念</button>
+      <button class="secondary" onclick="restart()">重新測驗</button>
+    </div>
+
+    <div class="footer">
+      一念 · 轉變一個念頭，校正一次頻率，顯化你想要的理想生活。
+    </div>
+  </section>
+</main>
+
+<script>
+const TYPES = {
+  self_worth: {
+    archetype: "自我對待 · 價值定價",
+    mantra: "重要，從來不是昂貴或耀眼。<br>重要，是你不再默認自己只配得上湊合。",
+    title: "你現在需要的，是停止對自己敷衍",
+    desc: "你可能常覺得『等狀態好一點再好好生活』，但沒人看見時你怎麼對待自己，才是你靈魂底層對自己的真實定價。你不需要先徹底變好才值得認真對待；今天起床把自己整理好，穿上讓自己願意站直的衣服，讓身體先收到訊號：今天不一樣了。"
+  },
+  action: {
+    archetype: "破除等待 · 力量源於微行動",
+    mantra: "力量不是等出來的。<br>它是你做了第一件小事之後，才慢慢長出來的。",
+    title: "你現在需要的，是跨出微小的第一步",
+    desc: "等待感覺像謹慎，但有時只是一種聽起來合理的放棄。你不是在等準備好，而是在等一個說不清楚的許可。你不需要先想通整條路才能開始；今天只做一件你完全做得到的小事，讓行動帶出力量，而不是在等待裡消耗自我。"
+  },
+  presence: {
+    archetype: "消除內耗 · 安穩在場",
+    mantra: "底氣不是一種天賦。<br>它只是你的內在跟外在，終於不再互相打架。",
+    title: "你現在需要的，是消除自我懷疑的雜訊",
+    desc: "很多關鍵時刻的退縮與分心，不是你能力不足，而是大腦一邊在應對事情、一邊在消化『我夠不夠在這裡』的焦慮。清理掉那些讓你覺得寒酸或不對勁的外在雜訊，把注意力放回當下。你不需要向任何人證明你屬於這裡，安穩地在場就好。"
+  },
+  flow: {
+    archetype: "重構秩序 · 喚醒轉運參與感",
+    mantra: "生活不是突然變好的。<br>是你先把自己站正了，周圍的事才一件件跟著歸位。",
+    title: "你現在需要的，是拿回生活的掌控感",
+    desc: "轉運從來不是命運突然翻盤，而是你重新拿回『我還能做點什麼』的參與感。把雜亂的桌面收拾乾淨、把拖延的訊息發出去，當你把能掌握的部分握在手裡，生活的秩序就會由內而外重新對齊。"
+  }
+};
+
+const QUESTIONS = [
+  {
+    q: "最近沒有出門、沒人要見你的日子，你是怎麼度過的？",
+    a: [
+      ["隨手抓舊衣服或睡衣，整天懶洋洋地塌在椅子裡", "self_worth"],
+      ["腦中有很多計畫想做，但一直卡著沒真正開始", "action"],
+      ["心裡常冒出『我現在這樣差不多就好』的聲音", "presence"],
+      ["覺得生活有點失控，只能被動等著哪天有轉機", "flow"]
+    ]
+  },
+  {
+    q: "每次你想開始一項新計畫或改變時，心裡最常出現的念頭是？",
+    a: [
+      ["『等我狀態好一點、準備更充分再來做』", "action"],
+      ["『現在的我好像還不夠好，怕做出來很丟臉』", "self_worth"],
+      ["『我不確定自己能不能駕馭，怕別人覺得我不專業』", "presence"],
+      ["『目前時機好像還不對，等運氣好一點再說』", "flow"]
+    ]
+  },
+  {
+    q: "當你走進一個重要場合或面對關鍵人物時，你的注意力通常在哪裡？",
+    a: [
+      ["暗自檢查自己哪裡不協調、擔心自己看起來寒酸", "presence"],
+      ["擔心自己準備不夠周全，隨時會被別人問倒", "action"],
+      ["覺得自己格格不入，不自覺想縮在角落", "self_worth"],
+      ["希望能有貴人拉一把，祈禱今天能平安過關", "flow"]
+    ]
+  },
+  {
+    q: "如果用你今天對待自己的方式來給自己定價，你發出的訊號是？",
+    a: [
+      ["我在敷衍自己，默認自己只配得上湊合過日子", "self_worth"],
+      ["我有潛力，但我一直在等待一個說不清楚的許可", "action"],
+      ["我的內在與外在正在打架，消耗了太多精神", "presence"],
+      ["我把主導權交給了外部，覺得好運還沒輪到我", "flow"]
+    ]
+  },
+  {
+    q: "當你感到低潮或提不起勁時，什麼最容易讓你整個人沉下去？",
+    a: [
+      ["房間凌亂、穿著沒精神的衣服，連鏡子都懶得看", "self_worth"],
+      ["一直在等待『某天突然湧現滿滿動力』", "action"],
+      ["不斷在腦海裡自我評判、自我懷疑", "presence"],
+      ["覺得自己運氣差，做任何小事好像都沒用", "flow"]
+    ]
+  },
+  {
+    q: "你上一次感覺到『生活好像有了一點轉機』，通常發生在什麼時候？",
+    a: [
+      ["某天起床把自己收拾乾淨、穿上俐落衣服的那一刻", "self_worth"],
+      ["決定不再等待，動手做完一件拖延很久的小事", "action"],
+      ["放下討好與擔憂，安穩站住自己的立場", "presence"],
+      ["重新整理好桌面與空間，找回生活秩序的時候", "flow"]
+    ]
+  },
+  {
+    q: "此刻，你最想換掉哪一個正在限制你的舊念頭？",
+    a: [
+      ["『我不夠好，等我變好才值得被認真對待』", "self_worth"],
+      ["『我必須先想通整條路、看到結果，才能開始』", "action"],
+      ["『我怕別人看見我不夠專業、不屬於這裡』", "presence"],
+      ["『生活要變好，必須等命運突然翻盤或貴人出現』", "flow"]
+    ]
+  },
+  {
+    q: "最後，不要思考。哪一句話最直接刺中你此刻的心情？",
+    a: [
+      ["『重要，是你不再默認自己只配得上湊合。』", "self_worth"],
+      ["『力量不是等出來的，是先做一件小事才長出來的。』", "action"],
+      ["『底氣不是天賦，是你的內外在終於不再互相打架。』", "presence"],
+      ["『生活不是突然變好的，是你先站正了，周圍才跟著歸位。』", "flow"]
+    ]
+  }
+];
+
 let qi = 0;
 let scores = { self_worth: 0, action: 0, presence: 0, flow: 0 };
 
-(function initLeadEmailField() {
-  const emailInput = document.getElementById("leadEmail");
-  if (emailInput) {
-    emailInput.addEventListener("input", () => {
-      emailInput.classList.remove("invalid");
-      document.getElementById("leadError").style.display = "none";
-    });
-  }
-})();
+/* ===== 名單後端設定 =====
+ * Apps Script Web App：寫入 Google Sheets＋寄通知信到 csky8888@gmail.com
+ * 試算表欄位：時間 / contact / type / page / url / ua
+ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdsz450B7XhwQyTJDpdZtR4hDgP9sMdmhkFVg_BB8e8UU6klJH6JAZ6GqkApGD7ZCh/exec";
+const LEAD_PAGE = "yinian_fengshui";
+let leadSending = false;
 
 function show(id) {
   document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function start() {
+  qi = 0;
+  scores = { self_worth: 0, action: 0, presence: 0, flow: 0 };
+  trackEvent('start_quiz', { page: LEAD_PAGE });
+  show("quiz");
+  render();
+}
+
+function render() {
+  const d = QUESTIONS[qi];
+  document.getElementById("qnum").textContent =
+    String(qi + 1).padStart(2, "0") + " / " + String(QUESTIONS.length).padStart(2, "0");
+  document.getElementById("bar").style.width = (qi / QUESTIONS.length * 100) + "%";
+  document.getElementById("question").textContent = d.q;
+
+  const box = document.getElementById("answers");
+  box.innerHTML = "";
+
+  d.a.forEach(([label, type]) => {
+    const b = document.createElement("button");
+    b.className = "answer";
+    b.textContent = label;
+    b.onclick = () => {
+      b.classList.add("selected");
+      scores[type] = (scores[type] || 0) + 1;
+      setTimeout(() => {
+        qi++;
+        if (qi < QUESTIONS.length) render();
+        else finish();
+      }, 240);
+    };
+    box.appendChild(b);
+  });
+}
+
+function finish() {
+  document.getElementById("bar").style.width = "100%";
+  show("loading");
+
+  setTimeout(() => {
+    const max = Math.max(...Object.values(scores));
+    const candidates = Object.keys(scores).filter(k => scores[k] === max);
+    const winner = candidates[Math.floor(Math.random() * candidates.length)];
+    const r = TYPES[winner];
+
+    document.getElementById("mantra").innerHTML = r.mantra;
+    document.getElementById("resultType").textContent = "給此刻正在經歷「" + r.archetype + "」的你";
+    document.getElementById("resultTitle").textContent = r.title;
+    document.getElementById("interpretation").textContent = r.desc;
+
+    localStorage.setItem("yinian_last_result", winner);
+    trackEvent('complete_quiz', { page: LEAD_PAGE, result_type: winner });
+    show("result");
   }, 2200);
 }
 
-function submitLead() {
-  const contact = document.getElementById("leadContact").value.trim();
-// ⚠️ 請將這裡換成你自己的 Google Apps Script 網頁應用程式 URL
-// 設定教學請見「Google 試算表串接說明」
-const LEAD_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzdsz450B7XhwQyTJDpdZtR4hDgP9sMdmhkFVg_BB8e8UU6klJH6JAZ6GqkApGD7ZCh/exec";
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function getDeviceInfo() {
-  const ua = navigator.userAgent || "";
-  let deviceType = "桌機 Desktop";
-  if (/iPad|Tablet/i.test(ua)) deviceType = "平板 Tablet";
-  else if (/Mobi|Android|iPhone/i.test(ua)) deviceType = "手機 Mobile";
-
-  let os = "未知";
-  if (/Windows/i.test(ua)) os = "Windows";
-  else if (/iPhone|iPad|iOS/i.test(ua)) os = "iOS";
-  else if (/Mac OS/i.test(ua)) os = "macOS";
-  else if (/Android/i.test(ua)) os = "Android";
-  else if (/Linux/i.test(ua)) os = "Linux";
-
-  let browser = "未知";
-  if (/Edg\//i.test(ua)) browser = "Edge";
-  else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Chrome";
-  else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari";
-  else if (/Firefox\//i.test(ua)) browser = "Firefox";
-
-  return {
-    deviceType,
-    os,
-    browser,
-    userAgent: ua,
-    language: navigator.language || "",
-    screen: screen.width + "x" + screen.height,
-    referrer: document.referrer || "(直接訪問)"
-  };
-}
-
-// 透過免費 IP 定位 API 取得大略地區（城市/國家），失敗則忽略不影響送出
-async function getGeoInfo() {
-  try {
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
-    if (data && data.success !== false) {
-      return {
-        country: data.country || "",
-        region: data.region || "",
-        city: data.city || "",
-        ip: data.ip || ""
-      };
-    }
-  } catch (e) {}
-  return { country: "", region: "", city: "", ip: "" };
-}
-
 async function submitLead() {
-  const emailInput = document.getElementById("leadEmail");
-  const email = emailInput.value.trim();
-  const errorBox = document.getElementById("leadError");
+  if (leadSending) return;
+  const input = document.getElementById("leadContact");
   const btn = document.querySelector(".lead-btn");
+  const errorBox = document.getElementById("leadError");
+  const contact = input.value.trim();
+  const resultType = localStorage.getItem("yinian_last_result") || "unknown";
+  const now = new Date().toISOString();
 
-  if (!isValidEmail(email)) {
-    emailInput.classList.add("invalid");
+  /* 有 @ 就當 Email 驗格式；純 LINE ID 不擋 */
+  if (contact.indexOf("@") !== -1 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
+    input.classList.add("invalid");
     errorBox.style.display = "block";
-    emailInput.focus();
+    input.focus();
+    trackEvent('generate_lead_error', { page: LEAD_PAGE, reason: 'invalid_email' });
     return;
   }
-  emailInput.classList.remove("invalid");
+  input.classList.remove("invalid");
   errorBox.style.display = "none";
 
-  const resultType = localStorage.getItem("yinian_last_result") || "unknown";
-  const device = getDeviceInfo();
+  /* 1) 先存本機（離線也看得到），再送後端 */
+  try {
+    const leads = JSON.parse(localStorage.getItem("yinian_leads") || "[]");
+    leads.push({ contact: contact || "未填寫(訪客)", type: resultType, date: now });
+    localStorage.setItem("yinian_leads", JSON.stringify(leads));
+  } catch (e) {}
 
-  btn.disabled = true;
-  btn.textContent = "送出中…";
+  /* 2) GA4：不管後端成不成功都要有值 */
+  trackEvent('generate_lead', {
+    page: LEAD_PAGE,
+    result_type: resultType,
+    has_contact: contact ? 'yes' : 'no'
+  });
 
-  const geo = await getGeoInfo();
-
+  /* 3) 送到 Apps Script → 寫入 Google Sheets＋寄通知信 */
+  leadSending = true;
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "傳送中…"; }
+  let sent = false;
   const payload = {
-    email,
-    resultType,
-    date: new Date().toISOString(),
-    ...device,
-    ...geo,
-    pageUrl: location.href
-  };
-
-  // 本地備份一份（方便除錯，不影響主要流程）
-  const leads = JSON.parse(localStorage.getItem("yinian_leads") || "[]");
-  leads.push({
     contact: contact || "未填寫(訪客)",
     type: resultType,
-    date: new Date().toISOString()
-  });
-  leads.push(payload);
-  localStorage.setItem("yinian_leads", JSON.stringify(leads));
-
-  // 送到 Google 試算表
-  if (LEAD_WEBHOOK_URL && LEAD_WEBHOOK_URL.indexOf("PASTE_YOUR") === -1) {
+    page: LEAD_PAGE,
+    url: location.href,
+    ua: navigator.userAgent,
+    date: now
+  };
+  try {
+    /* text/plain 不觸發 CORS 預檢；no-cors 下回應是 opaque，送達即算成功 */
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    sent = true;
+  } catch (err) {
+    /* 後端擋掉時改用 sendBeacon 再試一次 */
     try {
-      await fetch(LEAD_WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      console.warn("送出至 Google 試算表失敗：", e);
-    }
-  } else {
-    console.warn("尚未設定 LEAD_WEBHOOK_URL，名單僅保存在本機瀏覽器。");
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+        sent = navigator.sendBeacon(APPS_SCRIPT_URL, blob);
+      }
+    } catch (e) {}
   }
+  leadSending = false;
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "免費領取 7 日微行動藏寶圖"; }
 
+  /* 4) 畫面：一律顯示成功（本機已留底），後端失敗就加註提醒 */
   document.getElementById("leadForm").style.display = "none";
   const successBox = document.getElementById("leadSuccess");
   successBox.style.display = "block";
-  if(contact) {
+  if (contact) {
     successBox.textContent = "✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引，藏寶圖將發送至：" + contact;
+  } else {
+    successBox.textContent = "✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引。";
   }
-  successBox.textContent = "✨ 登記成功！已為您備妥專屬 7 日轉念微行動指引，藏寶圖將發送至：" + email;
+  if (!sent) {
+    successBox.textContent += "（提醒：網路似乎不穩，資料已先存在這台裝置，建議稍後再登記一次。）";
+  }
 }
 
 async function share() {
+  const text = document.getElementById("mantra").innerText;
+  const resultType = localStorage.getItem("yinian_last_result") || "unknown";
+  if (navigator.share) {
     try {
       await navigator.share({
         title: "一念 · 此刻的一念",
-        text: "我看見了正在限制我的念頭：
-
-" + text + "
-
-換一個念頭，走向另一種可能：",
         text: "我看見了正在限制我的念頭：\n\n" + text + "\n\n換一個念頭，走向另一種可能：",
         url: location.href
       });
+      trackEvent('share', { page: LEAD_PAGE, method: 'web_share', result_type: resultType });
     } catch (e) {}
   } else {
-    await navigator.clipboard.writeText(text + "
-" + location.href);
-    await navigator.clipboard.writeText(text + "\n" + location.href);
+    try {
+      await navigator.clipboard.writeText(text + "\n" + location.href);
+      trackEvent('share', { page: LEAD_PAGE, method: 'clipboard', result_type: resultType });
+    } catch (e) {}
     alert("一念金句與測驗連結已複製！");
   }
 }
+
 function restart() {
-  document.getElementById("leadForm").style.display = "flex";
-  document.getElementById("leadSuccess").style.display = "none";
-  document.getElementById("leadContact").value = "";
-  document.getElementById("leadEmail").value = "";
-  document.getElementById("leadEmail").classList.remove("invalid");
-  document.getElementById("leadError").style.display = "none";
+  const form = document.getElementById("leadForm");
+  form.style.display = "flex";
   const btn = document.querySelector(".lead-btn");
-  btn.disabled = false;
-  btn.textContent = "免費領取 7 日微行動藏寶圖";
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "免費領取 7 日微行動藏寶圖"; }
+  leadSending = false;
+  document.getElementById("leadSuccess").style.display = "none";
+  const leadInput = document.getElementById("leadContact");
+  leadInput.value = "";
+  leadInput.classList.remove("invalid");
+  document.getElementById("leadError").style.display = "none";
   show("home");
 }
 </script>
+</body>
+</html>
