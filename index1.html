@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>108 · 此刻真言</title>
+<meta name="description" content="回答 6 個直覺問題，遇見此刻最適合你的那句話。" />
+
+<style>
+:root{
+  --ink:#26342d;
+  --muted:#7c867f;
+  --paper:#f6f4ec;
+  --white:rgba(255,255,255,.72);
+  --green:#536b5c;
+  --gold:#b39761;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:
+  "Noto Serif TC","Songti TC","PMingLiU",serif;color:var(--ink)}
+body{
+  background:
+    radial-gradient(circle at 50% -10%,#fff 0,transparent 42%),
+    linear-gradient(180deg,#f8f6ef 0%,#edf2ec 58%,#f5f1e8 100%);
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;opacity:.25;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+}
+.app{
+  width:min(100%,480px);min-height:100svh;margin:auto;
+  padding:calc(24px + env(safe-area-inset-top)) 24px
+          calc(28px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;
+}
+.brand{font:600 11px/1 sans-serif;letter-spacing:.28em;color:#8e8065}
+.screen{display:none;flex:1;animation:in .7s cubic-bezier(.2,.8,.2,1)}
+.screen.active{display:flex;flex-direction:column}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.hero{justify-content:center;text-align:center;padding-bottom:8vh}
+.lotus{
+  margin:20px auto 34px;width:74px;height:74px;display:grid;place-items:center;
+  border:1px solid rgba(179,151,97,.25);border-radius:50%;
+  color:var(--gold);font-size:31px;
+  box-shadow:0 0 60px rgba(255,255,255,.9)
+}
+.eyebrow{font:500 11px/1.4 sans-serif;letter-spacing:.3em;color:var(--gold);margin-bottom:18px}
+h1{font-size:38px;line-height:1.3;font-weight:500;letter-spacing:.06em;margin:0}
+.intro{font-size:14px;line-height:2;color:var(--muted);margin:22px auto 36px;max-width:310px}
+button{font:inherit}
+.primary{
+  border:0;background:#2f4036;color:white;border-radius:999px;padding:17px 28px;
+  font-family:system-ui,sans-serif;font-size:14px;letter-spacing:.12em;
+  box-shadow:0 14px 35px rgba(39,56,46,.18);cursor:pointer;
+}
+.note{font:11px/1.6 system-ui,sans-serif;color:#9ca29d;margin-top:16px}
+
+/* questions */
+.top{padding-top:28px}
+.progressbar{height:2px;background:#dfe3dc;margin:18px 0 46px;overflow:hidden}
+.progressbar i{display:block;width:0;height:100%;background:var(--gold);transition:.5s}
+.qnum{font:500 11px/1 system-ui,sans-serif;color:var(--gold);letter-spacing:.2em}
+.question{font-size:27px;line-height:1.55;font-weight:500;margin:16px 0 30px}
+.hint{font:12px/1.6 system-ui,sans-serif;color:#999;margin-top:-18px;margin-bottom:25px}
+.answers{display:grid;gap:11px}
+.answer{
+  width:100%;border:1px solid rgba(64,79,69,.1);background:rgba(255,255,255,.62);
+  backdrop-filter:blur(12px);border-radius:14px;padding:18px 18px;text-align:left;
+  color:#3c4941;box-shadow:0 7px 20px rgba(55,65,57,.035);cursor:pointer;
+  transition:.18s;font-size:15px;
+}
+.answer:active,.answer.selected{
+  transform:scale(.985);background:#405448;color:white;border-color:#405448
+}
+
+/* loading */
+.loading{justify-content:center;text-align:center}
+.orbit{position:relative;width:130px;height:130px;margin:0 auto 40px}
+.orbit:before,.orbit:after{content:"";position:absolute;border-radius:50%}
+.orbit:before{inset:0;border:1px solid rgba(179,151,97,.3);animation:spin 5s linear infinite}
+.orbit:after{width:7px;height:7px;background:var(--gold);top:-3px;left:62px;box-shadow:0 0 20px #b39761}
+.orbit span{position:absolute;inset:18px;display:grid;place-items:center;border-radius:50%;
+ background:rgba(255,255,255,.52);font-size:28px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading h2{font-weight:500;font-size:24px}
+.loading p{font:13px/2 system-ui,sans-serif;color:var(--muted)}
+
+/* result */
+.result{padding-top:28px}
+.result-head{text-align:center;margin:48px 0 22px}
+.result-head small{font:11px/1 system-ui,sans-serif;letter-spacing:.25em;color:var(--gold)}
+.result-head h2{font-weight:500;font-size:20px;margin:14px}
+
+.card{
+  min-height:390px;border-radius:24px;padding:38px 28px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;text-align:center;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(255,255,255,.95),transparent 37%),
+    linear-gradient(160deg,#eef1e8,#dce5dc 60%,#f1ece1);
+  box-shadow:0 25px 60px rgba(47,64,54,.15);
+}
+.card:before{
+  content:"";position:absolute;width:310px;height:310px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.65);left:-105px;bottom:-190px;
+  box-shadow:0 0 0 25px rgba(255,255,255,.08),0 0 0 60px rgba(255,255,255,.05);
+}
+.card .mark{font-size:24px;color:#a68e62;margin-bottom:28px}
+.mantra{position:relative;font-size:29px;line-height:1.75;letter-spacing:.08em;font-weight:500}
+.card .for{position:relative;margin-top:30px;font:11px/1.6 system-ui,sans-serif;color:#758078;letter-spacing:.14em}
+.reading{padding:27px 8px 22px}
+.reading h3{font-size:16px;font-weight:500}
+.reading p{font:14px/2 system-ui,sans-serif;color:#707b74}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.secondary{
+ border:1px solid #ced5ce;background:rgba(255,255,255,.55);border-radius:999px;
+ padding:15px 12px;color:#48564d;font:13px system-ui,sans-serif;cursor:pointer
+}
+.full{grid-column:1/-1}
+.footer{text-align:center;font:10px/1.7 system-ui,sans-serif;color:#9ca29d;margin-top:20px}
+</style>
+</head>
+
+<body>
+<main class="app">
+  <div class="brand">108 · TRUE WORDS</div>
+
+  <section class="screen hero active" id="home">
+    <div class="lotus">◌</div>
+    <div class="eyebrow">此 刻 真 言</div>
+    <h1>此刻的你，<br>需要哪一句話？</h1>
+    <p class="intro">
+      有些答案，不需要努力尋找。<br>
+      跟著直覺回答 6 個問題，<br>遇見此刻最適合你的真言。
+    </p>
+    <button class="primary" onclick="start()">開始 · 約 30 秒</button>
+    <div class="note">沒有標準答案，只選第一個浮現的感覺</div>
+  </section>
+
+  <section class="screen top" id="quiz">
+    <div class="qnum" id="qnum"></div>
+    <div class="progressbar"><i id="bar"></i></div>
+    <div class="question" id="question"></div>
+    <div class="hint">不用想太久，讓直覺替你選。</div>
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <section class="screen loading" id="loading">
+    <div class="orbit"><span>◌</span></div>
+    <h2>正在聽見此刻的你</h2>
+    <p>從你的選擇裡，<br>找出最值得留在心裡的一句話……</p>
+  </section>
+
+  <section class="screen result" id="result">
+    <div class="result-head">
+      <small>YOUR WORD · TODAY</small>
+      <h2>這是你此刻的真言</h2>
+    </div>
+
+    <div class="card" id="shareCard">
+      <div class="mark">◌</div>
+      <div class="mantra" id="mantra"></div>
+      <div class="for" id="resultType"></div>
+    </div>
+
+    <div class="reading">
+      <h3 id="resultTitle"></h3>
+      <p id="interpretation"></p>
+    </div>
+
+    <div class="actions">
+      <button class="primary full" onclick="openApp()">在 APP 裡，聽見我的真言</button>
+      <button class="secondary" onclick="share()">分享這句話</button>
+      <button class="secondary" onclick="restart()">再測一次</button>
+    </div>
+
+    <div class="footer">
+      真言是一種自我覺察與日常練習，不代表心理或醫療診斷。
+    </div>
+  </section>
+</main>
+
+<script>
+const TYPES = {
+  calm:{
+    title:"你現在需要的，是安定",
+    mantra:"我不必解決所有事情，\\n才能允許自己平靜。",
+    desc:"你可能已經承接了太多聲音。此刻不用急著回答所有問題，把注意力帶回現在：今天，只完成今天。",
+  },
+  courage:{
+    title:"你現在需要的，是勇氣",
+    mantra:"即使還有害怕，\\n我也願意走出下一步。",
+    desc:"勇氣並不是沒有不確定，而是不必等到完全準備好才開始。你需要的可能不是更完整的計畫，而是下一個小小的行動。",
+  },
+  release:{
+    title:"你現在需要的，是放下",
+    mantra:"已經完成使命的，\\n我允許它離開。",
+    desc:"有些東西曾經重要，不代表必須永遠留在生命裡。放下不是否定過去，而是把空間還給現在的自己。",
+  },
+  love:{
+    title:"你現在需要的，是溫柔",
+    mantra:"我可以愛一個人，\\n也不必失去自己。",
+    desc:"你很在意連結，但真正穩定的關係不要求你縮小自己。試著把給別人的理解，也留一部分給自己。",
+  },
+  clarity:{
+    title:"你現在需要的，是清晰",
+    mantra:"答案還沒出現，\\n不代表我走錯了。",
+    desc:"你正在一個還沒有完全成形的階段。與其逼自己立即知道結果，不如辨認：眼前哪一步，是你真正願意走的？",
+  },
+  trust:{
+    title:"你現在需要的，是相信",
+    mantra:"我不需要看見整條路，\\n只需要相信下一步。",
+    desc:"你可能正在重新確認自己與未來的關係。今天不用證明什麼；選擇一件你知道對自己重要的事，然後靠近它一點。",
+  }
+};
+
+const QUESTIONS=[
+ {
+  q:"最近，什麼最容易讓你的心變得很吵？",
+  a:[
+   ["事情太多，停不下來","calm"],["不知道下一步往哪裡","clarity"],
+   ["一段關係牽動著我","love"],["有件事想做，卻遲遲沒開始","courage"]
+  ]
+ },
+ {
+  q:"如果現在能放下一樣東西，你最想放下什麼？",
+  a:[
+   ["對自己的要求","calm"],["一段已經過去的事","release"],
+   ["別人怎麼看我","courage"],["一定要知道答案的焦慮","clarity"]
+  ]
+ },
+ {
+  q:"你最近最常在哪個時刻想起很多事情？",
+  a:[
+   ["睡前，一切安靜下來時","calm"],["與某個人分開之後","love"],
+   ["準備做重要決定時","clarity"],["想到未來的時候","trust"]
+  ]
+ },
+ {
+  q:"如果有人現在抱抱你，你最希望他對你說什麼？",
+  a:[
+   ["你可以休息一下","calm"],["你已經可以放下了","release"],
+   ["你值得被好好愛著","love"],["相信自己，再走一步","trust"]
+  ]
+ },
+ {
+  q:"此刻，你最想重新找回哪一種力量？",
+  a:[
+   ["內心的安靜","calm"],["開始的勇氣","courage"],
+   ["愛自己的能力","love"],["相信生命會展開","trust"]
+  ]
+ },
+ {
+  q:"最後，不要思考。現在最吸引你的是哪一句？",
+  a:[
+   ["留在此刻","calm"],["向前一步","courage"],
+   ["讓它離開","release"],["等待清晰","clarity"],
+   ["回到自己","love"],["相信未知","trust"]
+  ]
+ }
+];
+
+let qi=0;
+let scores={calm:0,courage:0,release:0,love:0,clarity:0,trust:0};
+
+function show(id){
+ document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+function start(){
+ qi=0;
+ scores={calm:0,courage:0,release:0,love:0,clarity:0,trust:0};
+ show("quiz"); render();
+}
+
+function render(){
+ const d=QUESTIONS[qi];
+ document.getElementById("qnum").textContent =
+   String(qi+1).padStart(2,"0")+" / "+String(QUESTIONS.length).padStart(2,"0");
+ document.getElementById("bar").style.width=(qi/QUESTIONS.length*100)+"%";
+ document.getElementById("question").textContent=d.q;
+
+ const box=document.getElementById("answers");
+ box.innerHTML="";
+
+ d.a.forEach(([label,type])=>{
+   const b=document.createElement("button");
+   b.className="answer";
+   b.textContent=label;
+   b.onclick=()=>{
+     b.classList.add("selected");
+     scores[type]++;
+     setTimeout(()=>{
+       qi++;
+       if(qi<QUESTIONS.length) render();
+       else finish();
+     },240);
+   };
+   box.appendChild(b);
+ });
+}
+
+function finish(){
+ document.getElementById("bar").style.width="100%";
+ show("loading");
+
+ setTimeout(()=>{
+   const max=Math.max(...Object.values(scores));
+   const candidates=Object.keys(scores).filter(k=>scores[k]===max);
+   const winner=candidates[Math.floor(Math.random()*candidates.length)];
+   const r=TYPES[winner];
+
+   document.getElementById("mantra").innerHTML=
+      r.mantra.replace("\\n","<br>");
+   document.getElementById("resultType").textContent=
+      "給此刻正在「"+r.title.replace("你現在需要的，是","")+"」的你";
+   document.getElementById("resultTitle").textContent=r.title;
+   document.getElementById("interpretation").textContent=r.desc;
+
+   localStorage.setItem("mantraResult",winner);
+   show("result");
+
+   // GA / Meta Pixel 可在此送出 complete_quiz
+ },2400);
+}
+
+async function share(){
+ const text=document.getElementById("mantra").innerText;
+
+ if(navigator.share){
+   try{
+     await navigator.share({
+       title:"我的此刻真言",
+       text:"我找到今天屬於我的一句話：\\n\\n"+text+
+            "\\n\\n你也來找找你的。",
+       url:location.href
+     });
+   }catch(e){}
+ }else{
+   await navigator.clipboard.writeText(text+"\\n"+location.href);
+   alert("真言與連結已複製");
+ }
+}
+
+function openApp(){
+ // 改成你的 Universal Link / App Store URL
+ location.href="https://YOUR-DOMAIN.com/open";
+}
+
+function restart(){
+ show("home");
+}
+</script>
+</body>
+</html>
