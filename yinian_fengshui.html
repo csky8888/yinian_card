@@ -198,6 +198,10 @@ button{font:inherit;cursor:pointer}
 }
 .lead-btn:hover{background:#a38548}
 .lead-btn:active{transform:scale(.985)}
+.lead-btn[disabled]{opacity:.6;cursor:not-allowed}
+.lead-btn[disabled]:hover{background:var(--gold)}
+.lead-input.invalid{border-color:#c0432f;box-shadow:0 0 0 3px rgba(192,67,47,.12)}
+.lead-error{display:none;text-align:left;font:12px/1.6 system-ui,sans-serif;color:#c0432f;margin-top:-2px;padding-left:4px}
 .lead-success{
   display:none;padding:12px;border-radius:10px;background:rgba(83,107,92,.12);
   color:var(--green-dark);font:13px/1.6 system-ui,sans-serif;margin-top:10px;
@@ -279,7 +283,11 @@ button{font:inherit;cursor:pointer}
           id="leadContact" 
           class="lead-input" 
           placeholder="請輸入 LINE ID 或 Email (選填)"
+          autocomplete="email"
+          inputmode="email"
+          oninput="this.classList.remove('invalid');document.getElementById('leadError').style.display='none'"
         />
+        <div class="lead-error" id="leadError">Email 格式似乎不正確，請再檢查一次（只填 LINE ID 也可以，直接送出）</div>
         <button class="lead-btn" onclick="submitLead()">免費領取 7 日微行動藏寶圖</button>
       </div>
       <div class="lead-success" id="leadSuccess">
@@ -479,9 +487,21 @@ async function submitLead() {
   if (leadSending) return;
   const input = document.getElementById("leadContact");
   const btn = document.querySelector(".lead-btn");
+  const errorBox = document.getElementById("leadError");
   const contact = input.value.trim();
   const resultType = localStorage.getItem("yinian_last_result") || "unknown";
   const now = new Date().toISOString();
+
+  /* 有 @ 就當 Email 驗格式；純 LINE ID 不擋 */
+  if (contact.indexOf("@") !== -1 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
+    input.classList.add("invalid");
+    errorBox.style.display = "block";
+    input.focus();
+    trackEvent('generate_lead_error', { page: LEAD_PAGE, reason: 'invalid_email' });
+    return;
+  }
+  input.classList.remove("invalid");
+  errorBox.style.display = "none";
 
   /* 1) 先存本機（離線也看得到），再送後端 */
   try {
@@ -572,7 +592,10 @@ function restart() {
   if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "免費領取 7 日微行動藏寶圖"; }
   leadSending = false;
   document.getElementById("leadSuccess").style.display = "none";
-  document.getElementById("leadContact").value = "";
+  const leadInput = document.getElementById("leadContact");
+  leadInput.value = "";
+  leadInput.classList.remove("invalid");
+  document.getElementById("leadError").style.display = "none";
   show("home");
 }
 </script>
