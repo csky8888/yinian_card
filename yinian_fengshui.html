@@ -191,6 +191,8 @@ button{font:inherit;cursor:pointer}
   outline:none;transition:.2s;
 }
 .lead-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+.lead-input.invalid{border-color:#c0432f;box-shadow:0 0 0 3px rgba(192,67,47,.12)}
+.lead-error{display:none;text-align:left;font:12px/1.6 system-ui,sans-serif;color:#c0432f;margin-top:-2px;padding-left:4px}
 .lead-btn{
   width:100%;border:0;background:var(--gold);color:#fff;border-radius:12px;padding:14px 18px;
   font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:600;
@@ -200,8 +202,6 @@ button{font:inherit;cursor:pointer}
 .lead-btn:active{transform:scale(.985)}
 .lead-btn[disabled]{opacity:.6;cursor:not-allowed}
 .lead-btn[disabled]:hover{background:var(--gold)}
-.lead-input.invalid{border-color:#c0432f;box-shadow:0 0 0 3px rgba(192,67,47,.12)}
-.lead-error{display:none;text-align:left;font:12px/1.6 system-ui,sans-serif;color:#c0432f;margin-top:-2px;padding-left:4px}
 .lead-success{
   display:none;padding:12px;border-radius:10px;background:rgba(83,107,92,.12);
   color:var(--green-dark);font:13px/1.6 system-ui,sans-serif;margin-top:10px;
@@ -416,8 +416,9 @@ let scores = { self_worth: 0, action: 0, presence: 0, flow: 0 };
 /* ===== 名單後端設定 =====
  * Apps Script Web App：寫入 Google Sheets＋寄通知信到 csky8888@gmail.com
  * 試算表欄位：時間 / contact / type / page / url / ua
+ * 2026-09-04 更新：改用新的部署 URL（舊部署 ID AKfycb…GD7ZCh 已汰換）
  */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdsz450B7XhwQyTJDpdZtR4hDgP9sMdmhkFVg_BB8e8UU6klJH6JAZ6GqkApGD7ZCh/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxk99QBQlDMHJsDCc2mecrZ00dXvUQgooGsr2pjLTPbH9gC_NXgLAL3jYK3xYkLSE_8/exec";
 const LEAD_PAGE = "yinian_fengshui";
 let leadSending = false;
 
@@ -521,12 +522,41 @@ async function submitLead() {
   leadSending = true;
   if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "傳送中…"; }
   let sent = false;
+  /* 裝置資訊（純本機判斷，不打第三方 API，避免拖慢送出） */
+  const ua = navigator.userAgent || "";
+  let deviceType = "桌機 Desktop";
+  if (/iPad|Tablet/i.test(ua)) deviceType = "平板 Tablet";
+  else if (/Mobi|Android|iPhone/i.test(ua)) deviceType = "手機 Mobile";
+  let os = "未知";
+  if (/Windows/i.test(ua)) os = "Windows";
+  else if (/iPhone|iPad|iOS/i.test(ua)) os = "iOS";
+  else if (/Mac OS/i.test(ua)) os = "macOS";
+  else if (/Android/i.test(ua)) os = "Android";
+  else if (/Linux/i.test(ua)) os = "Linux";
+  let browser = "未知";
+  if (/Edg\//i.test(ua)) browser = "Edge";
+  else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Chrome";
+  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari";
+  else if (/Firefox/i.test(ua)) browser = "Firefox";
+
+  /* 欄位同時送新舊兩種命名，後端用哪套模板都接得到：
+   * contact/email、type/resultType、page/pageUrl、url、ua/userAgent */
   const payload = {
     contact: contact || "未填寫(訪客)",
+    email: contact,
     type: resultType,
+    resultType: resultType,
     page: LEAD_PAGE,
+    pageUrl: location.href,
     url: location.href,
-    ua: navigator.userAgent,
+    ua: ua,
+    userAgent: ua,
+    deviceType: deviceType,
+    os: os,
+    browser: browser,
+    language: navigator.language || "",
+    screen: (window.screen ? screen.width + "x" + screen.height : ""),
+    referrer: document.referrer || "(直接訪問)",
     date: now
   };
   try {
