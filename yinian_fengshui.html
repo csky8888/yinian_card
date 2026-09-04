@@ -478,17 +478,12 @@ async function share() {
     try {
       await navigator.share({
         title: "一念 · 此刻的一念",
-        text: "我看見了正在限制我的念頭：
-
-" + text + "
-
-換一個念頭，走向另一種可能：",
+        text: "我看見了正在限制我的念頭：\n\n" + text + "\n\n換一個念頭，走向另一種可能：",
         url: location.href
       });
     } catch (e) {}
   } else {
-    await navigator.clipboard.writeText(text + "
-" + location.href);
+    await navigator.clipboard.writeText(text + "\n" + location.href);
     alert("一念金句與測驗連結已複製！");
   }
 }
